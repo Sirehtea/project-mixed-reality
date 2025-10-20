@@ -36,7 +36,7 @@ public class TVControllerXR : MonoBehaviour
             grabInteractable.selectEntered.RemoveListener(OnGrab);
     }
 
-    void StartTV()
+    public void StartTV()
     {
         if (videoPlayer != null)
         {
@@ -44,7 +44,14 @@ public class TVControllerXR : MonoBehaviour
             isOn = true;
         }
     }
-
+    public void StopTV()
+    {
+        if (videoPlayer != null)
+        {
+            videoPlayer.Pause();
+            isOn = false;
+        }
+    }
     private void OnGrab(SelectEnterEventArgs args)
     {
         ToggleTV();
@@ -56,13 +63,11 @@ public class TVControllerXR : MonoBehaviour
 
         if (isOn)
         {
-            videoPlayer.Pause();
-            isOn = false;
+            StopTV();
         }
         else
         {
-            videoPlayer.Play();
-            isOn = true;
+            StartTV();
         }
     }
 }

@@ -26,15 +26,25 @@ public class SimpleRadio : MonoBehaviour
         // zolang je collider heeft en interactie toestaat
         if (isOn)
         {
-            radioAudio.Stop();
-            isOn = false;
-            Debug.Log("Radio turned off");
+            StopRadio();
         }
         else
         {
-            radioAudio.Play();
-            isOn = true;
-            Debug.Log("Radio turned on");
+            StartRadio();
         }
+    }
+
+    public void StartRadio()
+    {
+        radioAudio.Play();
+        isOn = true;
+        Debug.Log("Radio turned on");
+    }
+    
+    public void StopRadio()
+    {
+        radioAudio.Stop();
+        isOn = false;
+        Debug.Log("Radio turned off");
     }
 }
