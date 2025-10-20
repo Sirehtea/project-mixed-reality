@@ -14,7 +14,6 @@ public class StateManager : MonoBehaviour
     public TVControllerXR tv;
     public SimpleRadio radio;
     private GameState _currentState;
-    public InputActionReference actionReference;
     public void NextState()
     {
         if (_currentState != GameState.RadioOff) _currentState++;
