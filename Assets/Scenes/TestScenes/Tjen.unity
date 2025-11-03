@@ -150,7 +150,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StateManager
   tv: {fileID: 560534110}
   radio: {fileID: 1641609779}
-  actionReference: {fileID: 0}
 --- !u!4 &92066974
 Transform:
   m_ObjectHideFlags: 0

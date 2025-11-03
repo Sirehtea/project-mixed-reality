@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 3
   tags:
   - Anchor
+  - Direction_Changer_Platform_A
+  - Direction_Changer_Platform_B
+  - Direction_Changer_Platform_C
+  - Direction_Changer_Platform_D
+  - NPC
   layers:
   - Default
   - TransparentFX
