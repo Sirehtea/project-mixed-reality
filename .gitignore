@@ -104,3 +104,4 @@ InitTestScene*.unity*
 # VSCode
 .vscode/
 .vsconfig
+.DS_STORE
