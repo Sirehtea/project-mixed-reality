@@ -416,6 +416,8 @@ MonoBehaviour:
     instantiationMode: 0
   - dependency: {fileID: 1503989109714432937, guid: dc067c577ec1b854684d789b6e727cc0, type: 3}
     instantiationMode: 0
+  - dependency: {fileID: 111300000, guid: 4e89d44a4141ebc418db4912a041d0ca, type: 2}
+    instantiationMode: 1
   - dependency: {fileID: 8806329115733545877, guid: 77e7c27b2c5525e4aa8cc9f99d654486, type: 3}
     instantiationMode: 0
   - dependency: {fileID: 2800000, guid: 1b208c9c64896bb41804f87a20a84fad, type: 3}
