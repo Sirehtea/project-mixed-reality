@@ -18,10 +18,10 @@ TagManager:
   - Water
   - UI
   - MirrorIgnore
-  - 
-  - 
-  - 
-  - 
+  - LightIgnore
+  - Body
+  - Interactable
+  - Interactable Ignore Rays
   - 
   - 
   - 
