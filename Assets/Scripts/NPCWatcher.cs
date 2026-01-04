@@ -1,88 +1,143 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class NPCWatcher : MonoBehaviour
 {
-    [Header("Animator control")]
-    public Animator animator;
-    public bool useAnimatorStates = false;
+    [Header("Watching Behaviour")]
+    [SerializeField] private float turnSpeed = 5f;
+    [SerializeField] private float fogValue = 0.5f;
 
-    [Header("Chill facing direction")]
-    public Vector3 idleEulerAngles;
+    [Header("Idle Pose")]
+    [SerializeField] private Vector3 idleEulerRotation;
 
-    [Header("Look behavior")]
-    public float lookRotateSpeed = 5f;
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private RuntimeAnimatorController idleController;
+    [SerializeField] private RuntimeAnimatorController watchingController;
 
-    [Header("Fog Settings")]
-    public float minFog = 0.02f;      // altijd actief
-    public float targetFog = 0.1f;    // waarde waarop fog stijgt
-    public float fogRiseSpeed = 0.05f; // snelheid van stijgen per seconde
+    [Header("Creepy Voice Lines")]
+    [SerializeField] private bool enableVoices = true;
+    [SerializeField] private AudioSource voiceSource;
+    [SerializeField] private AudioClip[] voiceClips;
+    [SerializeField] private float voiceIntervalSeconds = 4f;
+    [SerializeField] private bool randomOrder = true;
 
-    private bool watching = false;
-    private Transform playerRef;
+    private Transform player;
+    private bool isWatching = false;
+    private Coroutine voiceLoopRoutine;
+    private int clipIndex = 0;
 
-    private void Start()
+    void Start()
     {
-        RenderSettings.fog = true;
-        RenderSettings.fogDensity = minFog;
+        if (idleEulerRotation == Vector3.zero)
+            idleEulerRotation = transform.rotation.eulerAngles;
+
+        if (animator && idleController)
+            animator.runtimeAnimatorController = idleController;
+
+        if (!voiceSource)
+            voiceSource = GetComponent<AudioSource>();
     }
 
-    public void SetWatching(bool watch)
+    void Update()
     {
-        watching = watch;
+        if (!isWatching)
+        {
+            Quaternion idleRot = Quaternion.Euler(idleEulerRotation);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                idleRot,
+                turnSpeed * Time.deltaTime
+            );
+            return;
+        }
 
+        if (!player) return;
+
+        Vector3 dir = player.position - transform.position;
+        dir.y = 0;
+        if (dir.sqrMagnitude < 0.01f) return;
+
+        Quaternion target = Quaternion.LookRotation(dir);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            target,
+            turnSpeed * Time.deltaTime
+        );
+    }
+
+    public void SetPlayerReference(Transform p)
+    {
+        player = p;
+    }
+
+    public void SetWatching(bool watching)
+    {
+        if (isWatching == watching)
+            return;
+
+        isWatching = watching;
+
+        // Fog
+        if (watching)
+            FogController.Instance?.RequestFog(this, fogValue);
+        else
+            FogController.Instance?.ReleaseFog(this);
+
+        // Animation
         if (animator)
         {
-            if (useAnimatorStates)
-                animator.SetBool("isWatching", watch);
-            else
-                animator.speed = watch ? 0f : 1f;
+            animator.runtimeAnimatorController =
+                watching && watchingController ? watchingController : idleController;
         }
+
+        // Voices
+        HandleVoices(watching);
     }
 
-    public void SetPlayerReference(Transform player)
+    private void HandleVoices(bool watching)
     {
-        playerRef = player;
-    }
+        if (!enableVoices || voiceSource == null || voiceClips == null || voiceClips.Length == 0)
+            return;
 
-    private void Update()
-    {
-        if (watching)
-            FacePlayerNow();
-        else
-            FaceIdleNow();
-
-        UpdateFog();
-    }
-
-    private void FacePlayerNow()
-    {
-        if (playerRef == null) return;
-
-        Vector3 dir = playerRef.position - transform.position;
-        dir.y = 0f;
-        if (dir.sqrMagnitude < 0.0001f) return;
-
-        Quaternion targetRot = Quaternion.LookRotation(dir.normalized, Vector3.up);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, lookRotateSpeed * Time.deltaTime);
-    }
-
-    private void FaceIdleNow()
-    {
-        Quaternion targetRot = Quaternion.Euler(idleEulerAngles);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, lookRotateSpeed * Time.deltaTime);
-    }
-
-    private void UpdateFog()
-    {
         if (watching)
         {
-            // smooth stijgen naar targetFog
-            RenderSettings.fogDensity = Mathf.MoveTowards(RenderSettings.fogDensity, targetFog, fogRiseSpeed * Time.deltaTime);
+            if (voiceLoopRoutine == null)
+                voiceLoopRoutine = StartCoroutine(VoiceLoop());
         }
         else
         {
-            // terug naar minFog
-            RenderSettings.fogDensity = Mathf.MoveTowards(RenderSettings.fogDensity, minFog, fogRiseSpeed * Time.deltaTime);
+            if (voiceLoopRoutine != null)
+            {
+                StopCoroutine(voiceLoopRoutine);
+                voiceLoopRoutine = null;
+            }
+
+            voiceSource.Stop();
+        }
+    }
+
+    private IEnumerator VoiceLoop()
+    {
+        while (true)
+        {
+            if (!voiceSource.isPlaying)
+            {
+                AudioClip clip;
+
+                if (randomOrder)
+                    clip = voiceClips[Random.Range(0, voiceClips.Length)];
+                else
+                {
+                    clip = voiceClips[clipIndex];
+                    clipIndex = (clipIndex + 1) % voiceClips.Length;
+                }
+
+                voiceSource.clip = clip;
+                voiceSource.Play();
+            }
+
+            yield return new WaitForSeconds(voiceIntervalSeconds);
         }
     }
 }
