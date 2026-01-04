@@ -16,6 +16,11 @@ public class TeleportPad : MonoBehaviour
     [SerializeField] private GameObject prefabToEnable;
     [SerializeField] private Transform optionalRepositionTarget;
 
+    [Header("Audio On Teleport")]
+    [SerializeField] private AudioClip teleportSfx;
+    [Range(0f, 1f)]
+    [SerializeField] private float teleportVolume = 1f;
+
     private void OnTriggerEnter(Collider other)
     {
         // Only react to the player
@@ -32,6 +37,10 @@ public class TeleportPad : MonoBehaviour
             playerToTeleport.rotation = Quaternion.Euler(0f, 0f, 0f);
         else
             playerToTeleport.rotation = teleportTarget.rotation;
+
+        // --- PLAY TELEPORT SOUND ---
+        if (teleportSfx)
+            AudioSource.PlayClipAtPoint(teleportSfx, teleportTarget.position, teleportVolume);
 
         // --- STOP WHITE LAMP AUDIO ---
         if (UnderworldLampSequence.Instance)

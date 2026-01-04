@@ -87,10 +87,18 @@ public class UnderworldLampSequence : MonoBehaviour
                     Destroy(currentLampAudio);
                 }
 
+                // create audio source
                 currentLampAudio = step.lampLight.gameObject.AddComponent<AudioSource>();
                 currentLampAudio.clip = lampOnSfx;
                 currentLampAudio.volume = step.sfxVolume;
                 currentLampAudio.loop = true;
+
+                // --- 3D audio settings ---
+                currentLampAudio.spatialBlend = 1f;      // fully 3D
+                currentLampAudio.dopplerLevel = 0f;      // no Doppler effect
+                currentLampAudio.minDistance = 120f;
+                currentLampAudio.maxDistance = 200f;
+
                 currentLampAudio.Play();
             }
 
@@ -156,6 +164,13 @@ public class UnderworldLampSequence : MonoBehaviour
                 whiteLampAudio.clip = whiteLampSfx;
                 whiteLampAudio.volume = whiteLampVolume;
                 whiteLampAudio.loop = false;
+
+                // --- 3D audio settings ---
+                whiteLampAudio.spatialBlend = 1f;
+                whiteLampAudio.dopplerLevel = 0f;
+                whiteLampAudio.minDistance = 120f;
+                whiteLampAudio.maxDistance = 200f;
+
                 whiteLampAudio.Play();
                 Destroy(whiteLampAudio, whiteLampSfx.length + 0.1f);
             }

@@ -11,6 +11,8 @@ TagManager:
   - Direction_Changer_Platform_D
   - NPC
   - Product
+  - Store
+  - Grass
   layers:
   - Default
   - TransparentFX
