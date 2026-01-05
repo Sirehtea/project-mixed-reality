@@ -1,96 +1,143 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class NPCWatcher : MonoBehaviour
 {
-    [Header("Animator control")]
-    public Animator animator;
-    public bool useAnimatorStates = false; // keep this OFF for now
+    [Header("Watching Behaviour")]
+    [SerializeField] private float turnSpeed = 5f;
+    [SerializeField] private float fogValue = 0.5f;
 
-    [Header("Chill facing direction")]
-    [Tooltip("The rotation this NPC should face when music is playing (in degrees). Only Y really matters.")]
-    public Vector3 idleEulerAngles; // set this in Inspector per NPC, e.g. (0, 45, 0)
+    [Header("Idle Pose")]
+    [SerializeField] private Vector3 idleEulerRotation;
 
-    [Header("Look behavior")]
-    public float lookRotateSpeed = 5f; // how fast they turn
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private RuntimeAnimatorController idleController;
+    [SerializeField] private RuntimeAnimatorController watchingController;
 
-    // runtime state
-    private bool watching = false;
-    private Transform playerRef;
+    [Header("Creepy Voice Lines")]
+    [SerializeField] private bool enableVoices = true;
+    [SerializeField] private AudioSource voiceSource;
+    [SerializeField] private AudioClip[] voiceClips;
+    [SerializeField] private float voiceIntervalSeconds = 4f;
+    [SerializeField] private bool randomOrder = true;
 
-    // called by controller when player enters/leaves range
-    public void SetWatching(bool watch)
+    private Transform player;
+    private bool isWatching = false;
+    private Coroutine voiceLoopRoutine;
+    private int clipIndex = 0;
+
+    void Start()
     {
-        watching = watch;
-        Debug.Log(gameObject.name + " -> SetWatching(" + watch + ")");
+        if (idleEulerRotation == Vector3.zero)
+            idleEulerRotation = transform.rotation.eulerAngles;
 
+        if (animator && idleController)
+            animator.runtimeAnimatorController = idleController;
+
+        if (!voiceSource)
+            voiceSource = GetComponent<AudioSource>();
+    }
+
+    void Update()
+    {
+        if (!isWatching)
+        {
+            Quaternion idleRot = Quaternion.Euler(idleEulerRotation);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                idleRot,
+                turnSpeed * Time.deltaTime
+            );
+            return;
+        }
+
+        if (!player) return;
+
+        Vector3 dir = player.position - transform.position;
+        dir.y = 0;
+        if (dir.sqrMagnitude < 0.01f) return;
+
+        Quaternion target = Quaternion.LookRotation(dir);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            target,
+            turnSpeed * Time.deltaTime
+        );
+    }
+
+    public void SetPlayerReference(Transform p)
+    {
+        player = p;
+    }
+
+    public void SetWatching(bool watching)
+    {
+        if (isWatching == watching)
+            return;
+
+        isWatching = watching;
+
+        // Fog
+        if (watching)
+            FogController.Instance?.RequestFog(this, fogValue);
+        else
+            FogController.Instance?.ReleaseFog(this);
+
+        // Animation
         if (animator)
         {
-            if (useAnimatorStates)
-            {
-                // not using this yet, but keeping fallback
-                animator.SetBool("isWatching", watch);
-                animator.speed = 1f;
-            }
-            else
-            {
-                if (watch)
-                {
-                    // freeze
-                    animator.speed = 0f;
-                    Debug.Log(gameObject.name + " animator.speed = 0 (FREEZE)");
-                }
-                else
-                {
-                    // unfreeze
-                    animator.speed = 1f;
-                    Debug.Log(gameObject.name + " animator.speed = 1 (RESUME)");
-                }
-            }
+            animator.runtimeAnimatorController =
+                watching && watchingController ? watchingController : idleController;
         }
-        else
-        {
-            Debug.LogWarning(gameObject.name + " has no Animator assigned in NPCWatcher!");
-        }
+
+        // Voices
+        HandleVoices(watching);
     }
 
-    // this gets called from the controller so we know who to look at
-    public void SetPlayerReference(Transform player)
+    private void HandleVoices(bool watching)
     {
-        playerRef = player;
-    }
+        if (!enableVoices || voiceSource == null || voiceClips == null || voiceClips.Length == 0)
+            return;
 
-    private void Update()
-    {
-        // Handle rotation every frame depending on state
         if (watching)
         {
-            // WATCH MODE → face the player
-            FacePlayerNow();
+            if (voiceLoopRoutine == null)
+                voiceLoopRoutine = StartCoroutine(VoiceLoop());
         }
         else
         {
-            // CHILL MODE → face idleEulerAngles
-            FaceIdleNow();
+            if (voiceLoopRoutine != null)
+            {
+                StopCoroutine(voiceLoopRoutine);
+                voiceLoopRoutine = null;
+            }
+
+            voiceSource.Stop();
         }
     }
 
-    private void FacePlayerNow()
+    private IEnumerator VoiceLoop()
     {
-        if (playerRef == null) return;
+        while (true)
+        {
+            if (!voiceSource.isPlaying)
+            {
+                AudioClip clip;
 
-        // direction on ground plane
-        Vector3 dir = playerRef.position - transform.position;
-        dir.y = 0f;
-        if (dir.sqrMagnitude < 0.0001f) return;
+                if (randomOrder)
+                    clip = voiceClips[Random.Range(0, voiceClips.Length)];
+                else
+                {
+                    clip = voiceClips[clipIndex];
+                    clipIndex = (clipIndex + 1) % voiceClips.Length;
+                }
 
-        Quaternion targetRot = Quaternion.LookRotation(dir.normalized, Vector3.up);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, lookRotateSpeed * Time.deltaTime);
-    }
+                voiceSource.clip = clip;
+                voiceSource.Play();
+            }
 
-    private void FaceIdleNow()
-    {
-        // We only really care about Y but we’ll allow full euler so you can tilt if you really want (but probably keep X/Z = 0)
-        Quaternion targetRot = Quaternion.Euler(idleEulerAngles);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, lookRotateSpeed * Time.deltaTime);
+            yield return new WaitForSeconds(voiceIntervalSeconds);
+        }
     }
 }

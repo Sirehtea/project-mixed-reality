@@ -10,7 +10,9 @@ TagManager:
   - Direction_Changer_Platform_C
   - Direction_Changer_Platform_D
   - NPC
-  - Tv_trigger
+  - Product
+  - Store
+  - Grass
   layers:
   - Default
   - TransparentFX
