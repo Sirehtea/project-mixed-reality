@@ -10,6 +10,7 @@ TagManager:
   - Direction_Changer_Platform_C
   - Direction_Changer_Platform_D
   - NPC
+  - Tv_trigger
   layers:
   - Default
   - TransparentFX
@@ -22,8 +23,8 @@ TagManager:
   - Body
   - Interactable
   - Interactable Ignore Rays
-  - FrigeTrigger
-  - 
+  - FridgeTrigger
+  - TVLighting
   - 
   - 
   - 
