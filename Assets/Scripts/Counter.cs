@@ -6,7 +6,6 @@ public class Counter : MonoBehaviour
     [Header("Detection")]
     [SerializeField] private string productTag = "Product";
     [SerializeField] private float teleportDelay = 2f;
-    [SerializeField] private float npcDelay = 4f;
 
     [Header("Teleport")]
     [SerializeField] private Transform playerToTeleport;
@@ -19,40 +18,28 @@ public class Counter : MonoBehaviour
     [SerializeField] private NPCWatcher npc;
     [SerializeField] private Transform lookTarget;
 
+    private bool triggered = false;
     private Coroutine teleportRoutine;
-    private Coroutine npcRoutine;
 
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(productTag))
             return;
 
-        if (teleportRoutine == null)
-            teleportRoutine = StartCoroutine(TeleportAfterDelay());
+        if (triggered)
+            return; // don't run twice
 
-        if (npcRoutine == null)
-            npcRoutine = StartCoroutine(NPCReactAfterDelay());
-    }
+        triggered = true;
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (!other.CompareTag(productTag))
-            return;
-
-        if (teleportRoutine != null)
-        {
-            StopCoroutine(teleportRoutine);
-            teleportRoutine = null;
-        }
-
-        if (npcRoutine != null)
-        {
-            StopCoroutine(npcRoutine);
-            npcRoutine = null;
-        }
-
+        // --- NPC reacts IMMEDIATELY ---
         if (npc)
-            npc.SetWatching(false);
+        {
+            npc.SetPlayerReference(lookTarget ? lookTarget : playerToTeleport);
+            npc.SetWatching(true);
+        }
+
+        // --- Schedule teleport ---
+        teleportRoutine = StartCoroutine(TeleportAfterDelay());
     }
 
     private IEnumerator TeleportAfterDelay()
@@ -61,23 +48,22 @@ public class Counter : MonoBehaviour
 
         if (playerToTeleport && teleportTarget)
         {
-            // move player
             playerToTeleport.position = teleportTarget.position;
             playerToTeleport.rotation = Quaternion.Euler(0f, 0f, 0f);
 
-            // play teleport sound
+            // Sound still plays
             if (teleportSfx)
                 AudioSource.PlayClipAtPoint(teleportSfx, teleportTarget.position);
 
-            // enable fog
+            // Fog still happens
             if (FogController.Instance)
                 FogController.Instance.RequestFog(this, 0.04f);
 
-            // stop NPC watching
+            // NPC stops again here
             if (npc)
                 npc.SetWatching(false);
 
-            // ---- START UNDERWORLD LAMP EVENT ----
+            // Lamps still start
             if (UnderworldLampSequence.Instance)
                 UnderworldLampSequence.Instance.BeginSequence();
         }
@@ -85,16 +71,6 @@ public class Counter : MonoBehaviour
         teleportRoutine = null;
     }
 
-    private IEnumerator NPCReactAfterDelay()
-    {
-        yield return new WaitForSeconds(npcDelay);
-
-        if (npc)
-        {
-            npc.SetPlayerReference(lookTarget ? lookTarget : playerToTeleport);
-            npc.SetWatching(true);
-        }
-
-        npcRoutine = null;
-    }
+    // --- Exit no longer cancels anything ---
+    private void OnTriggerExit(Collider other) { }
 }

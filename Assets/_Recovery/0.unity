@@ -20614,6 +20614,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43e714f1f4176d14194b6c72b914101e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  houseEventManagerScript: {fileID: 0}
 --- !u!1 &1927812597 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -4039746962967019451, guid: fa4a36c39303baf46b1a5d2c26163f76, type: 3}
@@ -21797,8 +21798,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   player: {fileID: 2074832291}
-  radio: {fileID: 1953015551}
-  walkieTalkie: {fileID: 545353208}
   lights:
   - {fileID: 2116364273}
   - {fileID: 720179623}
@@ -21847,6 +21846,20 @@ MonoBehaviour:
   - {fileID: 1150818883}
   - {fileID: 1953015551}
   - {fileID: 2058211374}
+  radio: {fileID: 1953015551}
+  walkieTalkie: {fileID: 545353208}
+  fridgeDoor: {fileID: 0}
+  screenCanvas: {fileID: 0}
+  ScreenFade: {fileID: 0}
+  tvScreenStatic: {fileID: 0}
+  tvLights: []
+  tvScreenPlaying: {fileID: 0}
+  blockades: []
+  finalMirror: {fileID: 0}
+  house: {fileID: 0}
+  store: {fileID: 0}
+  tvScene: {fileID: 0}
+  mirror: {fileID: 0}
 --- !u!4 &2082765102
 Transform:
   m_ObjectHideFlags: 0
