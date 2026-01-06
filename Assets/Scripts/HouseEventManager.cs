@@ -8,22 +8,24 @@ using UnityEngine.Video;
 public class HouseEventManager : MonoBehaviour
 {
     public GameObject player;
+    public GameObject human;
+    public GameObject monster;
 
-
-    // Event 1: radoi playing
+    // Event 1: radio playing
     private bool radioOff = false;
     public List<GameObject> lights = new List<GameObject>();
     public GameObject radio;
     public GameObject walkieTalkie;
     public GameObject fridgeDoor;
 
-    // Event 2: after frigde door opened -> move to secons scene
+    // Event 2: after frigde door opened -> move to second scene
     private bool fridgeOpened = false;
     private bool fadeIn = false;
     private bool fadeOut = false;
     public Image screenCanvas;
     public CanvasGroup ScreenFade;
     private float fadeDuration = 5f;
+    public GameObject storeTeleport;
 
     // Event 3: static starts playing
     private bool playerReturns = false;
@@ -46,6 +48,7 @@ public class HouseEventManager : MonoBehaviour
 
     void Start()
     {
+        monster.SetActive(false);
         walkieTalkie.GetComponent<Light>().enabled = false;
         tvScreenStatic.SetActive(false);
         tvScreenPlaying.SetActive(false);
@@ -128,11 +131,13 @@ public class HouseEventManager : MonoBehaviour
 
     public void FinalMirror()
     {
+        human.SetActive(false);
+        monster.SetActive(true);
         tvScreenPlaying.SetActive(false);
         finalMirror.SetActive(true);
         finale = true;
         house.SetActive(false);
-        //store.SetActive(false);
+        store.SetActive(false);
         tvScene.SetActive(false);
         mirror.SetActive(false);
     }
@@ -144,7 +149,7 @@ public class HouseEventManager : MonoBehaviour
         {
             fadeIn = false;
             screenCanvas.color = Color.black;
-            PlayerReturns(); // Moet vervangen worden door de juiste methode
+            player.transform.position = storeTeleport.transform.position;
             fadeOut = true;
         }
     }
@@ -156,6 +161,7 @@ public class HouseEventManager : MonoBehaviour
         {
             fadeOut = false;
             fridgeOpened = false;
+            screenCanvas.color = Color.white;
         }
     }
 }

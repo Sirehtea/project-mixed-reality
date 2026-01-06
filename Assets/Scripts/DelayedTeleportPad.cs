@@ -3,6 +3,8 @@ using System.Collections;
 
 public class DelayedTeleportPad : MonoBehaviour
 {
+    public HouseEventManager eventManagerScript;
+
     [Header("Teleport")]
     [SerializeField] private Transform playerToTeleport;
     [SerializeField] private Transform teleportTarget;
@@ -47,7 +49,7 @@ public class DelayedTeleportPad : MonoBehaviour
         yield return new WaitForSeconds(teleportDelay);
 
         playerToTeleport.position = teleportTarget.position;
-
+        eventManagerScript.PlayerReturns();
         if (useCustomRotation)
             playerToTeleport.rotation = Quaternion.Euler(customRotationEuler);
         else

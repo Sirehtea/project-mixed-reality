@@ -34,7 +34,7 @@ public class TeleportPad : MonoBehaviour
         playerToTeleport.position = teleportTarget.position;
 
         if (resetRotationToZero)
-            playerToTeleport.rotation = Quaternion.Euler(0f, 0f, 0f);
+            playerToTeleport.rotation = Quaternion.Euler(0f, 180f, 0f);
         else
             playerToTeleport.rotation = teleportTarget.rotation;
 
